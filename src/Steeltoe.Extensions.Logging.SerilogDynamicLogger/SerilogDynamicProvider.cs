@@ -74,7 +74,7 @@ namespace Steeltoe.Extensions.Logging.SerilogDynamicLogger
                 }
             }
 
-            // Chain new loggers to the global loggers with its own switch 
+            // Chain new loggers to the global loggers with its own switch
             // taking into accound any "Overrides"
             var levelSwitch = new LoggingLevelSwitch(eventLevel);
             _loggerSwitches.GetOrAdd(categoryName, levelSwitch);
@@ -147,8 +147,7 @@ namespace Steeltoe.Extensions.Logging.SerilogDynamicLogger
             LogLevel? returnValue = null;
             if (name == "Default")
             {
-                var defaultValue = _serilogOptions.MinimumLevel.Default;
-                returnValue = FromSerilogLevel(defaultValue);
+                returnValue = (LogLevel)_serilogOptions.MinimumLevel.Default;
             }
             else
             {
@@ -157,7 +156,7 @@ namespace Steeltoe.Extensions.Logging.SerilogDynamicLogger
                     && overrides.ContainsKey(name)
                     && overrides.TryGetValue(name, out LogEventLevel configuredLevel))
                 {
-                    returnValue = FromSerilogLevel(configuredLevel);
+                    returnValue = (LogLevel)configuredLevel;
                 }
             }
 
@@ -168,7 +167,7 @@ namespace Steeltoe.Extensions.Logging.SerilogDynamicLogger
         {
             LoggingLevelSwitch levelSwitch;
             _loggerSwitches.TryGetValue(name, out levelSwitch);
-            return FromSerilogLevel(levelSwitch.MinimumLevel);
+            return (LogLevel)levelSwitch.MinimumLevel;
         }
 
         private IEnumerable<string> GetKeyPrefixes(string name)
@@ -187,38 +186,14 @@ namespace Steeltoe.Extensions.Logging.SerilogDynamicLogger
             }
         }
 
-        private LogLevel FromSerilogLevel(LogEventLevel level)
-        {
-            switch (level)
-            {
-                case LogEventLevel.Verbose: return LogLevel.Trace;
-                case LogEventLevel.Debug: return LogLevel.Debug;
-                case LogEventLevel.Information: return LogLevel.Information;
-                case LogEventLevel.Warning: return LogLevel.Warning;
-                case LogEventLevel.Error: return LogLevel.Error;
-                case LogEventLevel.Fatal: return LogLevel.Critical;
-                default: return LogLevel.None;
-            }
-        }
-
         private LogEventLevel ToSerilogLevel(LogLevel? level)
         {
-            if (level == null)
+            if (level == null || level == LogLevel.None)
             {
                 return LogEventLevel.Fatal;
             }
 
-            switch (level.Value)
-            {
-                case LogLevel.Trace: return LogEventLevel.Verbose;
-                case LogLevel.Debug: return LogEventLevel.Debug;
-                case LogLevel.Information: return LogEventLevel.Information;
-                case LogLevel.Warning: return LogEventLevel.Warning;
-                case LogLevel.Error: return LogEventLevel.Error;
-                case LogLevel.Critical: return LogEventLevel.Fatal;
-                case LogLevel.None:
-                default: return LogEventLevel.Fatal;
-            }
+            return (LogEventLevel)level;
         }
     }
 }
